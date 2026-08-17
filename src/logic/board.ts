@@ -228,3 +228,26 @@ export function revealCell(board: Board, index: number): Board {
     state: isWon(cells) ? "won" : state,
   };
 }
+
+export function toggleFlag(board: Board, index: number): Board {
+  if (board.state === "won" || board.state === "lost") {
+    return board;
+  }
+
+  if (index < 0 || index >= board.cells.length) {
+    return board;
+  }
+
+  const target = board.cells[index];
+  if (target.revealed) {
+    return board;
+  }
+
+  const cells = cloneCells(board.cells);
+  cells[index].flagged = !cells[index].flagged;
+
+  return {
+    ...board,
+    cells,
+  };
+}
