@@ -1,0 +1,75 @@
+:root {
+  --color-bg: #d8d4cc;
+  --color-surface: #ece9e2;
+  --color-panel: #cfcabe;
+  --color-border: #8a857a;
+  --color-border-light: #f4f1ea;
+  --color-border-dark: #5c574e;
+  --color-text: #22201c;
+  --color-muted: #5f5a50;
+  --color-accent: #2f5d3a;
+  --color-danger: #8b1e1e;
+  --color-success: #1f5a2d;
+  --color-cell: #b7b2a6;
+  --color-cell-revealed: #dcd7cd;
+  --color-cell-mine-hit: #d7b3b3;
+  --color-mine: #1a1814;
+  --color-flag: #9c2a2a;
+  --color-counter-bg: #111111;
+  --color-counter-text: #f04444;
+  --color-shadow: rgb(0 0 0 / 20%);
+  --color-grid-line: rgb(0 0 0 / 8%);
+  --color-bg-top: #e7e2d8;
+  --color-bg-bottom: #cfc9bd;
+
+  --color-number-1: #1c4ea3;
+  --color-number-2: #1f6b2c;
+  --color-number-3: #b12222;
+  --color-number-4: #1a2f7a;
+  --color-number-5: #7a1d1d;
+  --color-number-6: #176b6b;
+  --color-number-7: #1f1f1f;
+  --color-number-8: #5a5a5a;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1.25rem;
+  --space-xl: 2rem;
+
+  --size-cell: 1.75rem;
+  --font-ui: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: "Consolas", "Courier New", monospace;
+  --shadow-inset:
+    inset 1px 1px 0 var(--color-border-light),
+    inset -1px -1px 0 var(--color-border-dark);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  background: linear-gradient(
+    180deg,
+    var(--color-bg-top) 0%,
+    var(--color-bg) 40%,
+    var(--color-bg-bottom) 100%
+  );
+}
+
+button,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
