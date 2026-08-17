@@ -117,3 +117,114 @@ export function createBoard(level: Level): Board {
   recalculateAdjacent(cells, width, height);
   return { width, height, cells, state: "idle" };
 }
+
+function cloneCells(cells: Cell[]): Cell[] {
+  return cells.map((cell) => ({ ...cell }));
+}
+function isWon(cells: Cell[]): boolean {
+  return cells.every((cell) => cell.mine || cell.revealed);
+}
+function revealAllMines(cells: Cell[]): void {
+  for (const cell of cells) {
+    if (cell.mine) {
+      cell.revealed = true;
+      cell.flagged = false;
+    }
+  }
+}
+function moveMineAwayFrom(
+  cells: Cell[],
+  fromIndex: number,
+  width: number,
+  height: number,
+): boolean {
+  cells[fromIndex].mine = false;
+
+  for (let i = 0; i < cells.length; i += 1) {
+    if (i === fromIndex || cells[i].mine) {
+      continue;
+    }
+
+    cells[i].mine = true;
+    recalculateAdjacent(cells, width, height);
+    return true;
+  }
+
+  cells[fromIndex].mine = true;
+  return false;
+}
+function floodReveal(
+  cells: Cell[],
+  startIndex: number,
+  width: number,
+  height: number,
+): void {
+  const stack = [startIndex];
+
+  while (stack.length > 0) {
+    const index = stack.pop();
+    if (index === undefined) {
+      break;
+    }
+
+    const cell = cells[index];
+    if (cell.revealed || cell.flagged || cell.mine) {
+      continue;
+    }
+
+    cell.revealed = true;
+
+    if (cell.adjacent !== 0) {
+      continue;
+    }
+
+    for (const neighbor of neighborIndexes(index, width, height)) {
+      const next = cells[neighbor];
+      if (!next.revealed && !next.flagged && !next.mine) {
+        stack.push(neighbor);
+      }
+    }
+  }
+}
+
+export function revealCell(board: Board, index: number): Board {
+  if (board.state === "won" || board.state === "lost") {
+    return board;
+  }
+
+  if (index < 0 || index >= board.cells.length) {
+    return board;
+  }
+
+  const target = board.cells[index];
+  if (target.revealed || target.flagged) {
+    return board;
+  }
+
+  const cells = cloneCells(board.cells);
+  let state = board.state;
+
+  if (state === "idle") {
+    if (cells[index].mine) {
+      moveMineAwayFrom(cells, index, board.width, board.height);
+    }
+    state = "playing";
+  }
+
+  if (cells[index].mine) {
+    revealAllMines(cells);
+    return {
+      ...board,
+      cells,
+      state: "lost",
+    };
+  }
+
+  floodReveal(cells, index, board.width, board.height);
+
+  return {
+    ...board,
+    cells,
+    state: isWon(cells) ? "won" : state,
+  };
+}
