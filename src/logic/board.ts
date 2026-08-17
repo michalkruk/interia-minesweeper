@@ -32,6 +32,10 @@ const NEIGHBOR_OFFSETS: [number, number][] = [
   [1, 1],
 ];
 
+function cloneCells(cells: Cell[]): Cell[] {
+  return cells.map((cell) => ({ ...cell }));
+}
+
 function indexToCoords(index: number, width: number): [number, number] {
   return [index % width, Math.floor(index / width)];
 }
@@ -56,13 +60,37 @@ function neighborIndexes(
 ): number[] {
   const [x, y] = indexToCoords(index, width);
   const result: number[] = [];
+
   for (const [dx, dy] of NEIGHBOR_OFFSETS) {
     const nx = x + dx;
     const ny = y + dy;
-    if (inBounds(nx, ny, width, height))
+    if (inBounds(nx, ny, width, height)) {
       result.push(coordsToIndex(nx, ny, width));
+    }
   }
+
   return result;
+}
+
+export function normalizeMines(level: Level): [number, number][] {
+  const seen = new Set<string>();
+  const mines: [number, number][] = [];
+
+  for (const [x, y] of level.mines) {
+    if (!inBounds(x, y, level.width, level.height)) {
+      continue;
+    }
+
+    const key = `${x},${y}`;
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    mines.push([x, y]);
+  }
+
+  return mines;
 }
 
 function countAdjacent(
@@ -73,7 +101,9 @@ function countAdjacent(
 ): number {
   let count = 0;
   for (const neighbor of neighborIndexes(index, width, height)) {
-    if (cells[neighbor].mine) count += 1;
+    if (cells[neighbor].mine) {
+      count += 1;
+    }
   }
   return count;
 }
@@ -88,42 +118,10 @@ function recalculateAdjacent(
   }
 }
 
-export function normalizeMines(level: Level): [number, number][] {
-  const seen = new Set<string>();
-  const mines: [number, number][] = [];
-  for (const [x, y] of level.mines) {
-    if (!inBounds(x, y, level.width, level.height)) continue;
-    const key = `${x},${y}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    mines.push([x, y]);
-  }
-  return mines;
-}
-
-export function createBoard(level: Level): Board {
-  const width = level.width;
-  const height = level.height;
-  const size = width * height;
-  const cells: Cell[] = Array.from({ length: size }, () => ({
-    mine: false,
-    revealed: false,
-    flagged: false,
-    adjacent: 0,
-  }));
-  for (const [x, y] of normalizeMines(level)) {
-    cells[coordsToIndex(x, y, width)].mine = true;
-  }
-  recalculateAdjacent(cells, width, height);
-  return { width, height, cells, state: "idle" };
-}
-
-function cloneCells(cells: Cell[]): Cell[] {
-  return cells.map((cell) => ({ ...cell }));
-}
 function isWon(cells: Cell[]): boolean {
   return cells.every((cell) => cell.mine || cell.revealed);
 }
+
 function revealAllMines(cells: Cell[]): void {
   for (const cell of cells) {
     if (cell.mine) {
@@ -132,6 +130,7 @@ function revealAllMines(cells: Cell[]): void {
     }
   }
 }
+
 function moveMineAwayFrom(
   cells: Cell[],
   fromIndex: number,
@@ -153,6 +152,7 @@ function moveMineAwayFrom(
   cells[fromIndex].mine = true;
   return false;
 }
+
 function floodReveal(
   cells: Cell[],
   startIndex: number,
@@ -185,6 +185,31 @@ function floodReveal(
       }
     }
   }
+}
+
+export function createBoard(level: Level): Board {
+  const width = level.width;
+  const height = level.height;
+  const size = width * height;
+  const cells: Cell[] = Array.from({ length: size }, () => ({
+    mine: false,
+    revealed: false,
+    flagged: false,
+    adjacent: 0,
+  }));
+
+  for (const [x, y] of normalizeMines(level)) {
+    cells[coordsToIndex(x, y, width)].mine = true;
+  }
+
+  recalculateAdjacent(cells, width, height);
+
+  return {
+    width,
+    height,
+    cells,
+    state: "idle",
+  };
 }
 
 export function revealCell(board: Board, index: number): Board {
