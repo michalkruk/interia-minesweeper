@@ -251,3 +251,54 @@ export function toggleFlag(board: Board, index: number): Board {
     cells,
   };
 }
+
+export function chordCell(board: Board, index: number): Board {
+  if (board.state === "won" || board.state === "lost") {
+    return board;
+  }
+
+  if (index < 0 || index >= board.cells.length) {
+    return board;
+  }
+
+  const cell = board.cells[index];
+  if (!cell.revealed || cell.adjacent === 0) {
+    return board;
+  }
+
+  const neighbors = neighborIndexes(index, board.width, board.height);
+  const flagCount = neighbors.reduce(
+    (count, neighborIndex) =>
+      count + (board.cells[neighborIndex].flagged ? 1 : 0),
+    0,
+  );
+
+  if (flagCount !== cell.adjacent) {
+    return board;
+  }
+
+  let next = board;
+  for (const neighborIndex of neighbors) {
+    const neighbor = next.cells[neighborIndex];
+    if (!neighbor.revealed && !neighbor.flagged) {
+      next = revealCell(next, neighborIndex);
+      if (next.state === "lost" || next.state === "won") {
+        return next;
+      }
+    }
+  }
+
+  return next;
+}
+
+export function remainingMines(board: Board): number {
+  const mines = board.cells.reduce(
+    (count, cell) => count + (cell.mine ? 1 : 0),
+    0,
+  );
+  const flags = board.cells.reduce(
+    (count, cell) => count + (cell.flagged ? 1 : 0),
+    0,
+  );
+  return mines - flags;
+}
